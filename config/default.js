@@ -1,6 +1,6 @@
 module.exports = {
   taobao: {
-    username: '*****',
-    password: '*******'
+    username: 'stayfightfirst@gmail.com',
+    password: 'testflight02'
   }
 }
