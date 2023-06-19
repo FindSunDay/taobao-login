@@ -71,11 +71,11 @@ const login = async (browser, username, password) => {
     delay: 20
   })
 
-  await page.waitFor(20)
-  await page.waitForNavigation()
-  const error = await page.$eval('.error', node => node.textContent)
+  await page.waitFor(200)
+  // await page.waitForNavigation()
+  const error = await page.$eval('#nerr', node => node.textContent)
   if (error) {
-    console.log('确保账户安全重新入输入');
+    console.log('error: ', error);
     process.exit(1)
   }
   return true;
@@ -104,7 +104,10 @@ const loginTrip = async (browser, username, password) => {
   // await page.waitForNavigation();
 
   await page.tap('.r_input');
-  await page.type('.one_txt_cut', username, opts);
+
+  const bbb = await page.$('input[type="text"]');
+  console.log('bbb', bbb)
+  await page.type('input[type="text"]', username, opts);
 
   await page.waitFor(2000);
 
@@ -113,13 +116,16 @@ const loginTrip = async (browser, username, password) => {
   await page.waitFor(1000);
   await page.waitForSelector('.one_txt_cut');
 
+  const aaa = await page.$('input[type="password"]');
+  console.log('aaa', aaa)
+
   await page.tap('#ibu_login_input_eye_show');
   await page.tap('input[type="password"]');
   await page.type('input[type="password"]', password, opts);
 
   await page.waitFor(200);
 
-  let loginBtn = await page.$('#ibu_login_submit')
+  const loginBtn = await page.$('#ibu_login_submit')
   await loginBtn.click({
     delay: 20
   })
@@ -131,6 +137,89 @@ const loginTrip = async (browser, username, password) => {
     console.log('确保账户安全重新入输入');
     process.exit(1)
   }
+  return true;
+}
+
+const loginCtripCT = async (browser, username, password) => {
+  const page = await browser.newPage();
+
+  page.setViewport({
+    width: 1376,
+    height: 1376
+  });
+
+  await page.goto("https://ct.ctrip.com/m/dy_3_BeforeLogin/Login/Login", {
+    waitUntil: 'networkidle2'
+  });
+
+  const opts = {
+    delay: 2 + Math.floor(Math.random() * 2), //每个字母之间输入的间隔
+  }
+
+  await page.type('input.accout', username, opts);
+  await page.type('input.pwd', password, opts);
+
+  const loginBtn = await page.waitForSelector('button.u-btn-BgTBlue');
+  if (loginBtn) {
+    await loginBtn.click({
+      delay: 20
+    });
+    console.log("click 登录")
+    await page.waitForTimeout(200);
+    await page.waitForSelector('.menu-chooseTip');
+    // await page.click('.menu-agreebtn').catch(e => {
+    //   console.log(e);
+    //   process.exit(1);
+    // });
+    console.log("click 同意");
+    await page.waitForTimeout(500);
+
+    const nobind = await page.$('div.btnLayer span.btn:first-child');
+    if(nobind) {
+      await page.waitForTimeout(200);
+      await page.click('div.btnLayer span.btn:first-child').catch(console.error);
+      console.log("click 暂不绑定");
+      await page.waitForNavigation();
+      console.log("login success")
+      return true
+    } 
+  } 
+  
+  return false;
+}
+
+const loginTripCT = async (browser, username, password) => {
+  const page = await browser.newPage();
+
+  page.setViewport({
+    width: 1376,
+    height: 1376
+  });
+
+  await page.goto("https://www.trip.biz/login?locale=en-US", {
+    waitUntil: 'networkidle2'
+  });
+
+  const opts = {
+    delay: 2 + Math.floor(Math.random() * 2), //每个字母之间输入的间隔
+  }
+
+  await page.type('#mui-3', username, opts);
+  await page.type('#mui-4', password, opts);
+
+  await page.waitForTimeout(500)
+  const agreebtn = await page.waitForSelector('button.MuiButtonBase-root');
+  if (agreebtn) {
+    await agreebtn.click({
+      delay: 20
+    });
+    console.log("click 登录")
+    await page.waitForTimeout(100);
+    // await page.click('.menu-agreebtn').catch(console.error);
+    // console.log("click 同意");
+    // await page.waitForTimeout(500);
+  } 
+
   return true;
 }
 
@@ -148,11 +237,15 @@ const startServer = async () => {
       // executablePath: pathToExtension
     });
     browser.userAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299');
+    // const {
+    //   username,
+    //   password
+    // } = config.taobao;
     const {
       username,
       password
-    } = config.taobao;
-    await loginTrip(browser, username, password)
+    } = config.ct;
+    await loginCtripCT(browser, username, password)
     // browser.close()
   } catch (error) {
     console.error('error', error)
